@@ -1,18 +1,55 @@
-# Hello World
+# Temporal Order Processing
 
-This is the default project that is scaffolded out when you run `npx @temporalio/create@latest ./myfolder`.
+An order-fulfillment workflow built with Temporal and TypeScript. It coordinates validation, inventory reservation, payment, shipping, and customer confirmation while providing retries and compensation when payment fails.
 
-The [Hello World Tutorial](https://learn.temporal.io/getting_started/typescript/hello_world_in_typescript/) walks through the code in this sample.
+## Workflow
 
-### Running this sample
-
-1. `temporal server start-dev` to start [Temporal Server](https://github.com/temporalio/cli/#installation).
-1. `npm install` to install dependencies.
-1. `npm run start.watch` to start the Worker.
-1. In another shell, `npm run workflow` to run the Workflow Client.
-
-The Workflow should return:
-
-```bash
-Hello, Temporal!
+```text
+Validate order
+      |
+Reserve inventory
+      |
+Charge payment ---- failure ---> Release inventory
+      |
+Create shipment
+      |
+Send confirmation
 ```
+
+The external systems are represented by in-memory activities so the example can run locally without credentials or databases.
+
+## Run locally
+
+1. Install the [Temporal CLI](https://docs.temporal.io/cli).
+2. Start a local Temporal Server:
+
+   ```bash
+   temporal server start-dev
+   ```
+
+3. Install dependencies and start the worker:
+
+   ```bash
+   npm install
+   npm run start.watch
+   ```
+
+4. In another terminal, start an order workflow:
+
+   ```bash
+   npm run workflow
+   ```
+
+5. Run the workflow and activity tests:
+
+   ```bash
+   npm test
+   ```
+
+## Temporal concepts demonstrated
+
+- Durable workflow orchestration
+- Activity retries with bounded attempts
+- Compensation for a failed payment
+- Workflow testing with real and mocked activities
+- Business IDs used as workflow IDs

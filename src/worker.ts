@@ -12,16 +12,17 @@ async function run() {
   });
   try {
     // Step 2: Register Workflows and Activities with the Worker.
+    //await Worker.create() creates a new Worker instance that will poll the Temporal server for tasks on the specified task queue. The worker is configured with the connection to the Temporal server, the namespace, the task queue, the path to the workflows, and the activities that it can execute.
     const worker = await Worker.create({
       connection,
       namespace: 'default',
-      taskQueue: 'hello-world',
+      taskQueue: 'order-processing',
       // Workflows are registered using a path as they run in a separate JS context.
       workflowsPath: require.resolve('./workflows'),
       activities,
     });
 
-    // Step 3: Start accepting tasks on the `hello-world` queue
+    // Step 3: Start accepting tasks on the `order-processing` queue
     //
     // The worker runs until it encounters an unexpected error or the process receives a shutdown signal registered on
     // the SDK Runtime object.

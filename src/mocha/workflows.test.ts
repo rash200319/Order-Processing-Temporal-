@@ -1,11 +1,14 @@
 import { TestWorkflowEnvironment } from '@temporalio/testing';
-import { before, describe, it } from 'mocha';
+import { after, before, describe, it } from 'mocha';
 import { Worker } from '@temporalio/worker';
-import { example } from '../workflows';
-import * as activities from '../activities';
 import assert from 'assert';
+import { processOrder } from '../workflows';
+import * as activities from '../activities';
+import type { Order } from '../types';
 
-describe('Example workflow', () => {
+describe('processOrder workflow', function () {
+  this.timeout(30_000);
+
   let testEnv: TestWorkflowEnvironment;
 
   before(async () => {
@@ -16,9 +19,14 @@ describe('Example workflow', () => {
     await testEnv?.teardown();
   });
 
-  it('successfully completes the Workflow', async () => {
+  it('fulfills an order from validation through confirmation', async () => {
     const { client, nativeConnection } = testEnv;
-    const taskQueue = 'test';
+    const taskQueue = 'order-test';
+    const order: Order = {
+      orderId: 'order-1',
+      customerId: 'customer-1',
+      items: [{ sku: 'book', quantity: 2, unitPrice: 15 }],
+    };
 
     const worker = await Worker.create({
       connection: nativeConnection,
@@ -28,12 +36,19 @@ describe('Example workflow', () => {
     });
 
     const result = await worker.runUntil(
-      client.workflow.execute(example, {
-        args: ['Temporal'],
-        workflowId: 'test',
+      client.workflow.execute(processOrder, {
+        args: [order],
+        workflowId: 'order-test-1',
         taskQueue,
       }),
     );
-    assert.equal(result, 'Hello, Temporal!');
+
+    assert.deepEqual(result, {
+      orderId: 'order-1',
+      paymentId: 'payment-order-1',
+      trackingNumber: 'TRACK-order-1',
+      status: 'CONFIRMED',
+      total: 30,
+    });
   });
 });

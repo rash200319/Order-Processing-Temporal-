@@ -1,27 +1,35 @@
-import { Connection, Client } from '@temporalio/client';
+import { Client, Connection } from '@temporalio/client';
 import { loadClientConnectConfig } from '@temporalio/envconfig';
-import { example } from './workflows';
 import { nanoid } from 'nanoid';
+import { processOrder } from './workflows';
 
 async function run() {
-  const config = loadClientConnectConfig();
-  const connection = await Connection.connect(config.connectionOptions);
+  const connection = await Connection.connect(
+    loadClientConnectConfig().connectionOptions,
+  );
   const client = new Client({ connection });
+  const orderId = `order-${nanoid(8)}`;
 
-  const handle = await client.workflow.start(example, {
-    taskQueue: 'hello-world',
-    // type inference works! args: [name: string]
-    args: ['Temporal'],
-    // in practice, use a meaningful business ID, like customerId or transactionId
-    workflowId: 'workflow-' + nanoid(),
+  const result = await client.workflow.execute(processOrder, {
+    taskQueue: 'order-processing',
+    workflowId: orderId,
+    args: [
+      {
+        orderId,
+        customerId: 'customer-123',
+        items: [
+          { sku: 'keyboard', quantity: 1, unitPrice: 79.99 },
+          { sku: 'mouse', quantity: 2, unitPrice: 24.99 },
+        ],
+      },
+    ],
   });
-  console.log(`Started workflow ${handle.workflowId}`);
 
-  // optional: wait for client result
-  console.log(await handle.result()); // Hello, Temporal!
+  console.log('Order completed:', result);
+  await connection.close();
 }
 
-run().catch((err) => {
-  console.error(err);
+run().catch((error) => {
+  console.error(error);
   process.exit(1);
 });
