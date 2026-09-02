@@ -1,10 +1,11 @@
-import { TestWorkflowEnvironment } from '@temporalio/testing';
 import { after, before, describe, it } from 'mocha';
+import type { TestWorkflowEnvironment } from '@temporalio/testing';
 import { Worker } from '@temporalio/worker';
 import assert from 'assert';
 import { processOrder } from '../workflows';
 import * as activities from '../activities';
 import type { Order } from '../types';
+import { createLocalTestEnvironment } from './test-env';
 
 describe('processOrder workflow', function () {
   this.timeout(30_000);
@@ -12,7 +13,7 @@ describe('processOrder workflow', function () {
   let testEnv: TestWorkflowEnvironment;
 
   before(async () => {
-    testEnv = await TestWorkflowEnvironment.createLocal();
+    testEnv = await createLocalTestEnvironment();
   });
 
   after(async () => {
