@@ -17,3 +17,10 @@ export type OrderResult = {
   status: 'CONFIRMED';
   total: number;
 };
+
+export type RejectedOrderResult = {
+  status : 'REJECTED';
+  reason: string;
+};
+
+export type ProcessOrderResult = OrderResult | RejectedOrderResult;

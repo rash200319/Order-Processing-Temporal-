@@ -1,6 +1,7 @@
 import { proxyActivities } from '@temporalio/workflow';
 import type * as activities from './activities';
-import type { Order, OrderResult } from './types';
+import type { ProcessOrderResult } from './types';
+
 
 const orderActivities = proxyActivities<typeof activities>({
   startToCloseTimeout: '1 minute',
@@ -12,7 +13,23 @@ const orderActivities = proxyActivities<typeof activities>({
 });
 
 /** Coordinates the reliable, multi-step order fulfillment process. */
-export async function processOrder(order: Order): Promise<OrderResult> {
+export async function processOrder(
+  rawText: string,
+): Promise<ProcessOrderResult> {
+  const interpretation = await orderActivities.interpretOrder(rawText);
+
+  if (
+    interpretation.decision !== 'PROCEED' ||
+    !interpretation.policyResult?.allowed ||
+    !interpretation.order
+  ) {
+    return {
+      status: 'REJECTED',
+      reason: interpretation.reason ?? 'Order rejected',
+    };
+  }
+
+  const order = interpretation.order;
   const total = await orderActivities.validateOrder(order);
   await orderActivities.reserveInventory(order);
 

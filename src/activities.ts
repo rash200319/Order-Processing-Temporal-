@@ -1,8 +1,15 @@
 import type { Order } from './types';
+import { runAgent } from './agent/graph';
+import type { AgentState } from './agent/state';
 
 export async function greet(name: string): Promise<string> {
   return `Hello, ${name}!`;
 }
+
+export async function interpretOrder(rawText: string): Promise<AgentState> {
+  return runAgent(rawText);
+}
+
 
 // The original greet activity is kept as a simple Temporal learning example.
 export async function validateOrder(order: Order): Promise<number> {

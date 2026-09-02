@@ -4,7 +4,6 @@ import { Worker } from '@temporalio/worker';
 import assert from 'assert';
 import { processOrder } from '../workflows';
 import * as activities from '../activities';
-import type { Order } from '../types';
 import { createLocalTestEnvironment } from './test-env';
 
 describe('processOrder workflow', function () {
@@ -23,12 +22,6 @@ describe('processOrder workflow', function () {
   it('fulfills an order from validation through confirmation', async () => {
     const { client, nativeConnection } = testEnv;
     const taskQueue = 'order-test';
-    const order: Order = {
-      orderId: 'order-1',
-      customerId: 'customer-1',
-      items: [{ sku: 'book', quantity: 2, unitPrice: 15 }],
-    };
-
     const worker = await Worker.create({
       connection: nativeConnection,
       taskQueue,
@@ -38,18 +31,20 @@ describe('processOrder workflow', function () {
 
     const result = await worker.runUntil(
       client.workflow.execute(processOrder, {
-        args: [order],
+        args: [
+          "Hi, I'm customer-123. Need 1 keyboard and 2 mice, ship whenever.",
+        ],
         workflowId: 'order-test-1',
         taskQueue,
       }),
     );
 
     assert.deepEqual(result, {
-      orderId: 'order-1',
-      paymentId: 'payment-order-1',
-      trackingNumber: 'TRACK-order-1',
+      orderId: 'mock-order-1',
+      paymentId: 'payment-mock-order-1',
+      trackingNumber: 'TRACK-mock-order-1',
       status: 'CONFIRMED',
-      total: 30,
+      total: 90,
     });
   });
 });

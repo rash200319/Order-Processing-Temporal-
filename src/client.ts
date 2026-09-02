@@ -14,14 +14,7 @@ async function run() {
     taskQueue: 'order-processing',
     workflowId: orderId,
     args: [
-      {
-        orderId,
-        customerId: 'customer-123',
-        items: [
-          { sku: 'keyboard', quantity: 1, unitPrice: 79.99 },
-          { sku: 'mouse', quantity: 2, unitPrice: 24.99 },
-        ],
-      },
+      "Hi, I'm customer-123. Need 1 keyboard and 2 mice, ship whenever.",
     ],
   });
 
